@@ -6,7 +6,8 @@ A safe Python code execution API with a simple web UI. Runs untrusted Python cod
 
 ## Features
 
-- Runs Python code safely in Docker
+- Runs Python c
+- ode safely in Docker
 - Enforces:
   - **Network disabled** (`--network none`)
   - **Memory limit** (`128MB`)
