@@ -1,129 +1,173 @@
-# Safe Code Executor
+**Safe Code Executor - Learning Project**
 
-A safe Python code execution API with a simple web UI. Runs untrusted Python code in a secure Docker sandbox.
+Overview
 
----
+Safe Code Executor is a learning project that demonstrates how to safely run user-submitted Python and JavaScript code inside Docker containers. The goal is to provide an API and simple frontend that executes code securely while preventing resource abuse and malicious actions.
 
-## Features
+Users can submit code through:
 
-- Runs Python c
-- ode safely in Docker
-- Enforces:
-  - **Network disabled** (`--network none`)
-  - **Memory limit** (`128MB`)
-  - **CPU limit** (`0.5 cores`)
-  - **Read-only filesystem**
-  - **Execution timeout** (10 seconds)
-  - **Max code length** (5000 characters)
-- Simple web UI for testing code
-- Returns output or error messages clearly
+API (POST /run)
 
----
+Frontend UI (HTML page with textarea and Run button)
 
-## Requirements
+Outputs are returned safely without compromising the host system.
 
-- Python 3.11+
-- Flask
-- Docker installed
+Features
+Run Python and JavaScript (Node.js) code inside isolated Docker containers.
+Prevent untrusted code from crashing the system:
+Timeout after 10 seconds
+Memory limit 128MB
+Network disabled
+Optional read-only filesystem
+Simple frontend to test code execution.
 
----
+Clear output and error reporting.
 
-## Setup
+Project Structure
+safe-code-executor/
+├── backend/
+│   ├── app.py           # Flask API
+│   └── index.html       # Frontend UI
+└── runner/
+    ├── python/
+    │   └── Dockerfile   # Python container
+    └── node/
+        ├── run.js       # Node.js runner
+        └── Dockerfile.node  # Node.js container
 
-1. Clone the project
-2. Create a Python virtual environment and activate it:
+Setup Instructions
+1. Prerequisites
 
-```bash
-python3 -m venv venv
-source venv/bin/activate  # Linux / Mac
-venv\Scripts\activate     # Windows
-Install dependencies:
+Python 3.11+ installed
 
-bash
-Copy code
+<img width="1286" height="117" alt="image" src="https://github.com/user-attachments/assets/eeeb4f3b-9f87-4a92-894f-97d1314c182e" />
+
+
+Docker installed and running
+
+Flask installed:
+ <img width="1390" height="287" alt="image" src="https://github.com/user-attachments/assets/bb107b22-9e15-4e26-a569-223c6e7004ba" />
+
 pip install flask
-Run the app:
 
-bash
-Copy code
-python3 app.py
-Usage
-Open your browser:
 
-cpp
-Copy code
-http://127.0.0.1:5000/
-Type Python code and click Run Code. Output will appear below.
+Optional: Postman or curl for API testing.
 
-API Example
+2. Build Docker Images
+Node.js Container
+docker build -t node-runner -f runner/node/Dockerfile.node .
+
+Python Container
+docker build -t python-runner -f runner/python/Dockerfile .
+
+3. Run the Flask Backend
+cd backend
+python app.py
+
+
+Server runs at: http://127.0.0.1:5000
+
+4. Open Frontend
+
+Open browser: http://127.0.0.1:5000
+
+Features:
+
+Language selection (Python / Node.js)
+
+Code textarea
+<img width="613" height="295" alt="image" src="https://github.com/user-attachments/assets/65a4c90d-0ccf-4776-b8b8-599260f19812" />
+
+Run button
+
+Output display
+
+API Usage
+Endpoint
 POST /run
-Request Body:
 
-json
-Copy code
+Request Body
 {
-  "code": "print(2+2)"
+  "language": "python",
+  "code": "print(2 + 2)"
 }
-Response:
+<img width="1376" height="729" alt="image" src="https://github.com/user-attachments/assets/ef46e843-2e9e-4dde-b0ac-8febe70bc668" />
 
-json
-Copy code
+
+Response
 {
-  "output": "4\n"
+  "output": "4\n",
+  "error": ""
 }
-Security Measures
---network none: Prevents internet access
 
---memory=128m: Limits memory usage
 
---cpus=0.5: Limits CPU usage
+Replace "language": "python" with "node" for JavaScript execution.
 
---read-only: Prevents writing to container filesystem
+Example curl
+curl -X POST http://127.0.0.1:5000/run \
+-H "Content-Type: application/json" \
+-d '{"language":"python","code":"print(5*5)"}'
 
-timeout=10: Stops infinite loops
+Security Measures Implemented
 
-MAX_CODE_LENGTH=5000: Prevents very large code
+Timeout: Container stops after 10 seconds.
 
-What I Learned
-Docker isolates code execution
+<img width="704" height="515" alt="image" src="https://github.com/user-attachments/assets/e3a68e58-6877-471e-8a04-abbea1abac42" />
 
-Containers can protect your system from untrusted code
+Memory limit: 128MB per execution.
 
-Some files inside the container can still be read
+Network isolation: --network none prevents internet access.
 
-Memory, CPU, network, and filesystem limits prevent crashes or attacks
+Optional read-only filesystem: Prevent writing to host files.
 
-Optional Enhancements
-Add support for JavaScript (Node.js)
+Execution in Docker containers: Provides sandboxing.
 
-Syntax highlighting in UI
+Testing
 
-History of executed code
+Test your system with malicious or heavy code:
 
-Run multiple containers in parallel
+Infinite loop:
 
-Use a non-root user and custom seccomp profile
+while True:
+    pass
 
-yaml
-Copy code
 
----
+→ Should terminate after timeout.
 
-# ✅ **Next Steps**
+Memory heavy:
 
-1. Make sure your **Docker daemon is running**  
-2. Run the server:
+x = "a" * 1000000000
 
-```bash
-python3 app.py
-Open browser → http://127.0.0.1:5000/
 
-Test:
+→ Container dies safely.
 
-Normal code (print("Hello"))
+Network access attempt:
 
-Infinite loop (while True: pass)
+import requests
+print(requests.get("http://google.com").text)
 
-Large memory allocation (x = "a"*1000000000)
 
-Network access (import requests# project-docker
+→ Fails due to network restriction.
+
+Filesystem write test:
+
+with open("/tmp/test.txt","w") as f:
+    f.write("hello")
+<img width="689" height="558" alt="image" src="https://github.com/user-attachments/assets/f5db5583-3ad2-4945-bc53-e6d9c4ee0b1b" />
+
+
+→ Fails if --read-only is enabled.
+
+Learning Outcomes
+
+By completing this project, you will understand:
+
+How to run code inside Docker containers from an API
+
+Why running untrusted code is dangerous
+
+Basic Docker security features: timeouts, memory limits, network isolation
+
+Limits of Docker security
+
+How to document and present a project
