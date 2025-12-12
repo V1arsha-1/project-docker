@@ -126,6 +126,9 @@ Testing
 
 Test your system with malicious or heavy code:
 
+
+<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/bf06104e-038e-4084-82e3-25a7b34db9a5" />
+
 Infinite loop:
 
 while True:
